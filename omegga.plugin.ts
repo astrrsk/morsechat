@@ -55,6 +55,13 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
 
   private lastMessangers = {}; // Used for /r
 
+  private checkPlayer(plr: string): string {
+    this.omegga.getPlayers().forEach( p => {
+      if (p.name.toLowerCase() == plr) { return p.name; }
+    });
+    return '';
+  }
+
   private message(speaker: string, to: string, message) {
     const playerConfirmation = this.omegga.getPlayer(to);
       if (!playerConfirmation) {
@@ -103,7 +110,7 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
         this.omegga.whisper(speaker, 'A message is required.');
         return;
       }
-      this.message(speaker, to, msg);
+      this.message(speaker, this.checkPlayer(to), msg);
     });
 
     this.omegga.on('cmd:m', (speaker: string, to: string, ...message) => { // Alias of cmd:morse, dunno if theres a better way to do this
@@ -125,7 +132,7 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
         this.omegga.whisper(speaker, 'A message is required');
         return;
       }
-      this.message(speaker, to, msg);
+      this.message(speaker, this.checkPlayer(to), msg);
     });
 
     this.omegga.on('cmd:r', (speaker: string, ...message) => {
@@ -161,7 +168,9 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
   }
 
   async leave(player) {
-
+    if (this.lastMessangers.hasOwnProperty(player.name)) {
+      delete this.lastMessangers[player.name];
+    }
   }
 
   async stop() {
