@@ -73,14 +73,10 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
 
       for (let c of msgArray) {
         c = c.toLowerCase();
-        console.log(`'${c}'`);
         if (!this.morseMap.hasOwnProperty(c)) { continue; } // Ignore characters that don't translate
-        if (c == '\n') {
-          translatedMessage += '\\'; // Turn spaces into a backslash
-        } else {
-          translatedMessage += this.morseMap[c] + ' '; // idc about a trailing space, deal with it code dweebs
-        }
-        console.log(translatedMessage);
+
+        translatedMessage += this.morseMap[c] + ' '; // idc about a trailing space, deal with it code dweebs
+
       }
       this.omegga.whisper(to, `<color="ff0000">!</>From ${speaker}: ${translatedMessage}`);
       this.lastMessangers[to] = speaker;
