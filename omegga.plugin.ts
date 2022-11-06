@@ -56,6 +56,7 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
   private lastMessangers = {}; // Used for /r
 
   private checkPlayer(plr: string): string {
+    plr = plr.toLowerCase();
     this.omegga.getPlayers().forEach( p => {
       if (p.name.toLowerCase() == plr) { return p.name; }
     });
