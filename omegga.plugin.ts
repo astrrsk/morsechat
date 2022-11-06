@@ -56,12 +56,26 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
 
   private lastMessangers = {}; // Used for /r
 
-  private checkPlayer(plr: string): string { // Non-case-sensitive player check
-    const lowered = plr.toLowerCase();
-    for (const p of this.omegga.getPlayers()) {
-      if (p.name.toLowerCase() == lowered) { return p.name; }
+  private checkPlayer(plr: string): string {
+    const players = this.omegga.getPlayers().sort();
+    const lower = plr.toLowerCase();
+    for (const p of players) {
+      if (p.name.toLowerCase() == lower) { return p.name; }
     }
-    return null;
+    
+    // No direct name found, try searching for alias
+    let closestMatch = { index: 99, name: null };
+    for (const p of players) {
+      const myIndex = p.name.toLowerCase().indexOf(plr);
+      if (myIndex != -1) {
+        if (myIndex < closestMatch.index) {
+          closestMatch.index = myIndex;
+          closestMatch.name = p.name;
+        }
+      }
+    }
+
+    return closestMatch.name; // Should be null if no proper match is found
   }
 
   private message(speaker: string, sendTo: string, message) {
