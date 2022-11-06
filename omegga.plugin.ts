@@ -19,6 +19,7 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
     b: '-...',
     c: '-.-.',
     e: '.',
+    d: '-..',
     f: '..-.',
     g: '--.',
     h: '....',
