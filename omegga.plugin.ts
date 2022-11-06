@@ -57,9 +57,9 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
 
   private checkPlayer(plr: string): string { // Non-case-sensitive player check
     const lowered = plr.toLowerCase();
-    this.omegga.getPlayers().forEach( p => {
+    for (const p of this.omegga.getPlayers()) {
       if (p.name.toLowerCase() == lowered) { return p.name; }
-    });
+    }
     return null;
   }
 
