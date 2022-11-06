@@ -55,40 +55,35 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
 
   private lastMessangers = {}; // Used for /r
 
-  private checkPlayer(plr: string): string {
-    plr = plr.toLowerCase();
+  private checkPlayer(plr: string): string { // Non-case-sensitive player check
+    const lowered = plr.toLowerCase();
     this.omegga.getPlayers().forEach( p => {
-      if (p.name.toLowerCase() == plr) { return p.name; }
+      if (p.name.toLowerCase() == lowered) { return p.name; }
     });
-    return '';
+    return null;
   }
 
-  private message(speaker: string, to: string, message) {
-    const playerConfirmation = this.omegga.getPlayer(to);
-      if (!playerConfirmation) {
-        this.omegga.whisper(speaker, `Unable to find player ${to}.`);
-        return;
-      }
-      const msgArray = message.split('');
-
-      let size = msgArray.length;
-      if (size > 140) {
-       this.omegga.whisper(speaker, `<color="ff0000">Maximum message limit of 140 characters.</> [ <color="cf7815">${size}</> ]`);
-       return;
-      }
-
-      let translatedMessage = '';
-
-      for (let c of msgArray) {
-        c = c.toLowerCase();
-        if (!this.morseMap.hasOwnProperty(c)) { continue; } // Ignore characters that don't translate
-
-        translatedMessage += this.morseMap[c] + ' '; // idc about a trailing space, deal with it code dweebs
-
-      }
-      this.omegga.whisper(to, `<color="ff0000">!</>From ${speaker}: ${translatedMessage}`);
-      this.lastMessangers[to] = speaker;
-      this.omegga.whisper(speaker, '<color="11ba30">Message sent.</>');
+  private message(speaker: string, sendTo: string, message) {
+    const to = this.checkPlayer(sendTo); // Returns the proper cased player name if they exist
+    if (!to) {
+      this.omegga.whisper(speaker, `Unable to find player ${sendTo}.`);
+      return;
+    }
+    const msgArray = message.split('');
+    let size = msgArray.length;
+    if (size > 140) {
+      this.omegga.whisper(speaker, `<color="ff0000">Maximum message limit of 140 characters.</> [ <color="cf7815">${size}</> ]`);
+      return;
+    }
+    let translatedMessage = '';
+    for (let c of msgArray) {
+      c = c.toLowerCase();
+      if (!this.morseMap.hasOwnProperty(c)) { continue; } // Ignore characters that don't translate
+      translatedMessage += this.morseMap[c] + ' '; // idc about a trailing space, deal with it code dweebs
+    }
+    this.omegga.whisper(to, `<color="ff0000">!</>From ${speaker}: ${translatedMessage}`);
+    this.lastMessangers[to] = speaker;
+    this.omegga.whisper(speaker, '<color="11ba30">Message sent.</>');
   }
 
   async init() {
@@ -111,7 +106,7 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
         this.omegga.whisper(speaker, 'A message is required.');
         return;
       }
-      this.message(speaker, this.checkPlayer(to), msg);
+      this.message(speaker, to, msg);
     });
 
     this.omegga.on('cmd:m', (speaker: string, to: string, ...message) => { // Alias of cmd:morse, dunno if theres a better way to do this
@@ -133,7 +128,7 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
         this.omegga.whisper(speaker, 'A message is required');
         return;
       }
-      this.message(speaker, this.checkPlayer(to), msg);
+      this.message(speaker, to, msg);
     });
 
     this.omegga.on('cmd:r', (speaker: string, ...message) => {
