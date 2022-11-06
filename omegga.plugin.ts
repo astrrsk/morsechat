@@ -14,13 +14,158 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
     this.store = store;
   }
 
+  private morseMap = { // idc if theres a better way to do this :middle_finger: :rat:
+    a: '.-',
+    b: '-...',
+    c: '-.-.',
+    e: '.',
+    f: '..-.',
+    g: '--.',
+    h: '....',
+    i: '..',
+    j: '.---',
+    k: '-.-',
+    l: '.-..',
+    m: '--',
+    n: '-.',
+    o: '---',
+    p: '.--.',
+    q: '--.-',
+    r: '.-.',
+    s: '...',
+    t: '-',
+    u: '--.',
+    v: '...-',
+    w: '.--',
+    x: '-..-',
+    y: '-.--',
+    z: '--..',
+    '1': '.----',
+    '2': '..---',
+    '3': '...--',
+    '4': '....-',
+    '5': '.....',
+    '6': '-....',
+    '7': '--...',
+    '8': '---..',
+    '9': '----.',
+    '0': '-----',
+    ' ': '\\'
+  };
+
+  private lastMessangers = {}; // Used for /r
+
+  private message(speaker: string, to: string, message) {
+    const playerConfirmation = this.omegga.getPlayer(to);
+      if (!playerConfirmation) {
+        this.omegga.whisper(speaker, `Unable to find player ${to}.`);
+        return;
+      }
+      const msgArray = message.split('');
+
+      let size = msgArray.length;
+      if (size > 140) {
+       this.omegga.whisper(speaker, `<color="ff0000">Maximum message limit of 140 characters.</> [ <color="cf7815">${size}</> ]`);
+       return;
+      }
+
+      let translatedMessage = '';
+
+      for (let c of msgArray) {
+        c = c.toLowerCase();
+        console.log(`'${c}'`);
+        if (!this.morseMap.hasOwnProperty(c)) { continue; } // Ignore characters that don't translate
+        if (c == '\n') {
+          translatedMessage += '\\'; // Turn spaces into a backslash
+        } else {
+          translatedMessage += this.morseMap[c] + ' '; // idc about a trailing space, deal with it code dweebs
+        }
+        console.log(translatedMessage);
+      }
+      this.omegga.whisper(to, `<color="ff0000">!</>From ${speaker}: ${translatedMessage}`);
+      this.lastMessangers[to] = speaker;
+      this.omegga.whisper(speaker, '<color="11ba30">Message sent.</>');
+  }
+
   async init() {
-    // Write your plugin!
-    this.omegga.on('cmd:test', (speaker: string) => {
-      this.omegga.broadcast(`Hello, ${speaker}!`);
+    this.omegga.on('cmd:morse', (speaker: string, to: string, ...message) => {
+      if (!to) {
+        this.omegga.whisper(speaker, 'A player is required.');
+        return;
+      }
+      if (message.length == 0) {
+        this.omegga.whisper(speaker, 'A message is required.');
+        return;
+      }
+
+      let msg = '';
+      message.forEach( (S, i) => {
+        if (i > 0) { msg += ' '};
+        msg += S;
+      });
+      if (msg == '') { // Weird edgecase where adding a space after the player counts as length > 0
+        this.omegga.whisper(speaker, 'A message is required.');
+        return;
+      }
+      this.message(speaker, to, msg);
     });
 
-    return { registeredCommands: ['test'] };
+    this.omegga.on('cmd:m', (speaker: string, to: string, ...message) => { // Alias of cmd:morse, dunno if theres a better way to do this
+      if (!to) {
+        this.omegga.whisper(speaker, 'A player is required.');
+        return;
+      }
+      if (message.length == 0) {
+        this.omegga.whisper(speaker, 'A message is required.');
+        return;
+      }
+
+      let msg = '';
+      message.forEach( (S, i) => {
+        if (i > 0) { msg += ' '};
+        msg += S;
+      });
+      if (msg == '') { // Weird edgecase where adding a space after the player counts as length > 0
+        this.omegga.whisper(speaker, 'A message is required');
+        return;
+      }
+      this.message(speaker, to, msg);
+    });
+
+    this.omegga.on('cmd:r', (speaker: string, ...message) => {
+      if (!this.lastMessangers.hasOwnProperty(speaker)) {
+        this.omegga.whisper(speaker, 'You have not gotten any message to reply to.');
+        return;
+      }
+
+      if (!this.omegga.getPlayer(this.lastMessangers[speaker])) {
+        this.omegga.whisper(speaker, `${this.lastMessangers[speaker]} has left the game.`);
+        return;
+      }
+
+      if (message.length == 0) {
+        this.omegga.whisper(speaker, 'A message is required');
+        return;
+      }
+
+      let msg = '';
+      message.forEach( (S, i) => {
+        if (i > 0) { msg += ' '}
+        msg += S;
+      });
+      if (msg == '') { // Weird edgecase where adding a space after the player counts as length > 0
+        this.omegga.whisper(speaker, 'A message is required');
+        return;
+      }
+
+      this.message(speaker, this.lastMessangers[speaker], msg);
+    });
+
+    return { registeredCommands: ['morse', 'm', 'r'] };
+  }
+
+  async leave(player) {
+
   }
 
   async stop() {

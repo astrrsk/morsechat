@@ -1,7 +1,54 @@
 {
   "name": "morsechat",
-  "description": "A typed safe Omegga plugin.",
+  "description": "Allows for communication via jank morse code.",
   "author": "astrsk",
   "config": {},
-  "commands": []
+  "commands": [
+    {
+      "name": "morse",
+      "description": "sends a message to a user, translated to morse on their end",
+      "example": "/morse PLAYER MESSAGE",
+      "args": [
+        {
+          "name": "player",
+          "description": "player to send message to",
+          "required" : true
+        },
+        {
+          "name": "message",
+          "description": "message to be sent to player",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "m",
+      "description": "(alias of /morse) sends a message to a user, translated to morse on their end",
+      "example": "/m PLAYER MESSAGE",
+      "args": [
+        {
+          "name": "player",
+          "description": "player to send message to",
+          "required" : true
+        },
+        {
+          "name": "message",
+          "description": "message to be sent to player",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "r",
+      "description": "Replies to the user who sent you the latest message",
+      "example": "/r MESSAGE",
+      "args": [
+        {
+          "name": "message",
+          "description": "message to be sent as a reply",
+          "required": true
+        }
+      ]
+    }
+  ]
 }
