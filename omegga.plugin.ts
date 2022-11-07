@@ -56,34 +56,14 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
 
   private lastMessangers = {}; // Used for /r
 
-  private checkPlayer(plr: string): string {
-    const players = this.omegga.getPlayers().sort();
-    const lower = plr.toLowerCase();
-    for (const p of players) {
-      if (p.name.toLowerCase() == lower) { return p.name; }
-    }
-    
-    // No direct name found, try searching for alias
-    let closestMatch = { index: 99, name: null };
-    for (const p of players) {
-      const myIndex = p.name.toLowerCase().indexOf(lower);
-      if (myIndex != -1) {
-        if (myIndex < closestMatch.index) {
-          closestMatch.index = myIndex;
-          closestMatch.name = p.name;
-        }
-      }
-    }
-
-    return closestMatch.name; // Should be null if no proper match is found
-  }
-
   private message(speaker: string, sendTo: string, message) {
-    const to = this.checkPlayer(sendTo); // Returns the proper cased player name if they exist
-    if (!to) {
+    const plr = this.omegga.findPlayerByName(sendTo); // Returns the proper cased player name if they exist
+    if (!plr) {
       this.omegga.whisper(speaker, `Unable to find player ${sendTo}.`);
       return;
     }
+    const to = plr.name;
+    
     const msgArray = message.split('');
     let size = msgArray.length;
     if (size > 140) {
